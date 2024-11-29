@@ -52,12 +52,13 @@ class Screen:
 
     def preferred_mode(self):
         if len(self.modes) == 0:
-          return None
+            return None
         return max(self.modes)
 
-
     def __repr__(self):
-        return f"Screen[{self.name} {"connected" if self.connected else "disconnected"}]"
+        return (
+            f"Screen[{self.name} {"connected" if self.connected else "disconnected"}]"
+        )
 
 
 def find_name(line):
@@ -79,7 +80,7 @@ def parse_screens(lines):
             current_screen.modes.append(Mode(line))
 
     if current_screen is not None:
-          yield current_screen
+        yield current_screen
 
 
 def assemble_command(screens):
@@ -90,7 +91,14 @@ def assemble_command(screens):
             yield ["--off"]
         else:
             mode = screen.preferred_mode()
-            yield ["--mode", f"{mode.width}x{mode.height}", "--pos", f"{pos_x}x{0}", "--rotate", "normal"]
+            yield [
+                "--mode",
+                f"{mode.width}x{mode.height}",
+                "--pos",
+                f"{pos_x}x{0}",
+                "--rotate",
+                "normal",
+            ]
             pos_x += mode.width
 
 
@@ -106,28 +114,24 @@ def format_command(command):
 
     return "\\\n".join(lines)
 
+
 if __name__ == "__main__":
-  listing_result = subprocess.run(["xrandr"], capture_output=True)
-  screens = list(parse_screens(listing_result.stdout.decode("utf-8").splitlines()))
+    listing_result = subprocess.run(["xrandr"], capture_output=True)
+    screens = list(parse_screens(listing_result.stdout.decode("utf-8").splitlines()))
 
-  screen_regex_sequence = [re.compile(pattern) for pattern in sys.argv[1:]]
+    screen_regex_sequence = [re.compile(pattern) for pattern in sys.argv[1:]]
 
-  def screen_position(screen: Screen):
-      if screen.connected:
-          for i, regex in enumerate(screen_regex_sequence):
-              if regex.match(screen.name):
-                  return i
-      screen.connected = False
-      return -1
+    def screen_position(screen: Screen):
+        if screen.connected:
+            for i, regex in enumerate(screen_regex_sequence):
+                if regex.match(screen.name):
+                    return i
+        screen.connected = False
+        return -1
 
-  screens.sort(key=screen_position)
-  command = assemble_command(screens)
-  command = ["xrandr"] + [v for vs in command for v in vs]
+    screens.sort(key=screen_position)
+    command = assemble_command(screens)
+    command = ["xrandr"] + [v for vs in command for v in vs]
 
-  print(format_command(command))
-  subprocess.run(command)
-
-
-
-
-
+    print(format_command(command))
+    subprocess.run(command)
