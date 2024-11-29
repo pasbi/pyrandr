@@ -17,7 +17,7 @@ class FPS:
         self.plus = matches.group(3) != ""
 
     def __repr__(self):
-        return f"{self.value}{"*" if self.asterisk else ""}{"+" if self.plus else ""}"
+        return f"{self.value}{'*' if self.asterisk else ''}{'+' if self.plus else ''}"
 
 
 class Mode:
@@ -31,7 +31,7 @@ class Mode:
         self.fps = [FPS(s) for s in matches.group(4).split()]
 
     def __repr__(self):
-        return f"{self.width}x{self.height}{"i" if self.interlaced else ""} {self.fps}"
+        return f"{self.width}x{self.height}{'i' if self.interlaced else ''} {self.fps}"
 
     def area(self):
         return self.width * self.height
@@ -57,7 +57,7 @@ class Screen:
 
     def __repr__(self):
         return (
-            f"Screen[{self.name} {"connected" if self.connected else "disconnected"}]"
+            f"Screen[{self.name} {'connected' if self.connected else 'disconnected'}]"
         )
 
 
