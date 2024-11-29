@@ -8,7 +8,8 @@ import argparse
 
 
 class FPS:
-    pattern = re.compile(r"^(\d+.\d+)(\*?)(\+?)$")
+    pattern = re.compile(r"^(\d+.\d+)(\s?)(\*?)(\+?)$")
+
     def __init__(self, code):
         matches = FPS.pattern.match(code)
         assert matches is not None, f"Unexpected line for FPS: {code}"
@@ -20,15 +21,28 @@ class FPS:
         return f"{self.value}{'*' if self.asterisk else ''}{'+' if self.plus else ''}"
 
 
+def split_fps(code):
+    tokens = code.split()
+    codes = []
+    number_pattern = re.compile(r"^\d+.\d+$")
+    for token in codes:
+        if number_pattern.match(token) or len(codes) == 0:
+            codes.append(token)
+        else:
+            codes[-1] += token
+    return codes
+
+
 class Mode:
-    pattern = re.compile(r"^\s*(\d+)x(\d+)(i?)((\s+\d+.\d+\*?\+?)+)\s*$")
+    pattern = re.compile(r"^\s*(\d+)x(\d+)(i?)((\s+\d+.\d+\s?\*?\+?)+)\s*$")
+
     def __init__(self, code):
         matches = Mode.pattern.match(code)
         assert matches is not None, f"Unexpected line for Mode: {code}"
         self.width = int(matches.group(1))
         self.height = int(matches.group(2))
         self.interlaced = matches.group(3) != ""
-        self.fps = [FPS(s) for s in matches.group(4).split()]
+        self.fps = [FPS(s) for s in split_fps(matches.group(4))]
 
     def __repr__(self):
         return f"{self.width}x{self.height}{'i' if self.interlaced else ''} {self.fps}"
