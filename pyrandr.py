@@ -4,6 +4,7 @@ import sys
 from dataclasses import dataclass
 import subprocess
 import re
+import argparse
 
 
 class FPS:
@@ -48,7 +49,6 @@ class Screen:
         self.name = name
         self.connected = connected
         self.modes: list[Mode] = []
-
 
     def preferred_mode(self):
         if len(self.modes) == 0:
@@ -116,13 +116,27 @@ def format_command(command):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="pyrandr", description="Convenient xrandr wrapper for special cases"
+    )
+    parser.add_argument(
+        "screens",
+        nargs="*",
+        help="The sequence of screens from left to right. "
+        "Screens that are not specified here will be turned off. "
+        "Regex to match screen names is supported. "
+        "An empty list places all connected screens next to each other.",
+    )
+    args = parser.parse_args()
+
     listing_result = subprocess.run(["xrandr"], capture_output=True)
     screens = list(parse_screens(listing_result.stdout.decode("utf-8").splitlines()))
-
     screen_regex_sequence = [re.compile(pattern) for pattern in sys.argv[1:]]
 
     def screen_position(screen: Screen):
         if screen.connected:
+            if len(screen_regex_sequence) == 0:
+                return 0
             for i, regex in enumerate(screen_regex_sequence):
                 if regex.match(screen.name):
                     return i
